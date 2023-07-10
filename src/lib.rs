@@ -14,6 +14,7 @@ pub enum ExampleEnum {
     A,
     B,
     C(u32),
+    D,
 }
 
 pub enum IntegerEnum {
@@ -86,6 +87,17 @@ fn get_c(e: Env) -> u32 {
         .unwrap()
 }
 
+fn set_d(e: &Env, d: Address) {
+    e.storage().set(&ExampleEnum::D, &d);
+}
+
+fn get_d(e: Env) -> Address {
+    e.storage()
+        .get(&ExampleEnum::D)
+        .expect("not initialized")
+        .unwrap()
+}
+
 fn get_a2() -> IntegerEnum {
     IntegerEnum::A
 }
@@ -134,15 +146,30 @@ impl MyContract {
         get_c(e)
     }
 
-    pub fn set_a_b_c(a: Symbol, b: Address, c: u32) {
+    pub fn set_d(d: Address) {
+        let e = Env::default();
+        set_d(&e, d);
+    }
+
+    pub fn get_d(e: Env) -> Address {
+        get_d(e)
+    }
+
+    pub fn set_a_b_c_d(a: Symbol, b: Address, c: u32, d: Address) {
         let e = Env::default();
         set_a(&e, a);
         set_b(&e, b);
         set_c(&e, c);
+        set_d(&e, d);
     }
 
-    pub fn get_a_b_c(e: Env) -> (Vec<Symbol>, Address, u32) {
-        (get_a(e.clone()), get_b(e.clone()), get_c(e))
+    pub fn get_a_b_c_d(e: Env) -> (Vec<Symbol>, Address, u32, Address) {
+        (
+            get_a(e.clone()),
+            get_b(e.clone()),
+            get_c(e.clone()),
+            get_d(e.clone()),
+        )
     }
 
     pub fn get_a2() -> u32 {
@@ -223,6 +250,13 @@ impl MyContract {
         let bob = Symbol::short("bob");
         let alice = Symbol::short("alice");
         let new_vec = vec![&env, hello, and, bob, alice];
+        new_vec
+    }
+    pub fn get_vec_address() -> Vec<Address> {
+        let env = Env::default();
+        let address1 = get_b(env.clone());
+        let address2 = get_d(env.clone());
+        let new_vec = vec![&env, address1, address2];
         new_vec
     }
     pub fn get_map() -> Map<u32, u32> {
