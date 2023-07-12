@@ -117,20 +117,20 @@ impl DataTypes {
         new_vec
     }
 
-    pub fn get_unnamed_struct_slot_0() -> Symbol {
-        STRUCT_UNNAMED_FIELD.0
-    }
-
-    pub fn get_unnamed_struct_slot_1() -> u32 {
-        STRUCT_UNNAMED_FIELD.1
-    }
-
-    pub fn get_user_name() -> Symbol {
+    pub fn get_named_field_name() -> Symbol {
         STRUCT_NAMED_FIELD.name
     }
 
-    pub fn get_user_amt() -> u32 {
+    pub fn get_named_field_amt() -> u32 {
         STRUCT_NAMED_FIELD.amt
+    }
+
+    pub fn get_unnamed_field_slot_0() -> Symbol {
+        STRUCT_UNNAMED_FIELD.0
+    }
+
+    pub fn get_unnamed_field_slot_1() -> u32 {
+        STRUCT_UNNAMED_FIELD.1
     }
 
     pub fn get_open_status() -> u32 {
@@ -145,43 +145,16 @@ impl DataTypes {
         StatusEnum::Pending as u32
     }
 
-    pub fn get_status() -> u64 {
+    pub fn get_map(key1: Address, value1: u32, key2: Address, value2: u32) -> Map<Address, u32> {
         let env = Env::default();
-        let deadline: u64 = env.storage().get(&ExampleEnum::C(100)).unwrap().unwrap();
-        deadline
-    }
-
-    pub fn get_map(key1: Symbol, value1: u32, key2: Symbol, value2: u32) -> Map<Symbol, u32> {
-        let env = Env::default();
-        let new_map: Map<Symbol, u32> = map![&env, (key1, value1), (key2, value2)];
+        let new_map: Map<Address, u32> = map![&env, (key1, value1), (key2, value2)];
         new_map
     }
 
-    pub fn set_deadline(e: Env, val: u64) {
+    pub fn get_deadline() -> u64 {
         let env = Env::default();
-        let deadline: u64 = env.ledger().timestamp() + val;
-        e.storage().set(&ExampleEnum::C(100), &deadline);
-    }
-
-    pub fn set_a_address(e: Env, a: Address) {
-        e.storage().set(&ExampleEnum::A, &a);
-    }
-
-    pub fn set_a_auth(e: Env, a: Address) {
-        a.require_auth();
-        e.storage().set(&ExampleEnum::A, &a);
-    }
-
-    pub fn set_b_address(e: Env, b: Address) {
-        e.storage().set(&ExampleEnum::B, &b);
-    }
-
-    pub fn set_c_u32(e: Env, slot: u32, c: u32) {
-        e.storage().set(&ExampleEnum::C(slot), &c);
-    }
-
-    pub fn set_d_symbol(e: Env, d: Symbol) {
-        e.storage().set(&ExampleEnum::D, &d);
+        let deadline: u64 = env.storage().get(&ExampleEnum::C(100)).unwrap().unwrap();
+        deadline
     }
 
     pub fn get_a_b_c_d(c_slot: u32) -> (Address, Address, u32, Symbol) {
@@ -219,6 +192,33 @@ impl DataTypes {
             .get(&ExampleEnum::D)
             .expect("not initialized")
             .unwrap()
+    }
+
+    pub fn set_deadline(e: Env, val: u64) {
+        let env = Env::default();
+        let deadline: u64 = env.ledger().timestamp() + val;
+        e.storage().set(&ExampleEnum::C(100), &deadline);
+    }
+
+    pub fn set_a_address(e: Env, a: Address) {
+        e.storage().set(&ExampleEnum::A, &a);
+    }
+
+    pub fn set_a_auth(e: Env, a: Address) {
+        a.require_auth();
+        e.storage().set(&ExampleEnum::A, &a);
+    }
+
+    pub fn set_b_address(e: Env, b: Address) {
+        e.storage().set(&ExampleEnum::B, &b);
+    }
+
+    pub fn set_c_u32(e: Env, slot: u32, c: u32) {
+        e.storage().set(&ExampleEnum::C(slot), &c);
+    }
+
+    pub fn set_d_symbol(e: Env, d: Symbol) {
+        e.storage().set(&ExampleEnum::D, &d);
     }
 
     pub fn get_current_address() -> Address {
