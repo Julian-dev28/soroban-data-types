@@ -66,7 +66,23 @@ impl DataTypes {
     }
     pub fn get_long_symbol() -> Symbol {
         let env = Env::default();
-        Symbol::new(&env, "THIS_IS_AN_EXCEEDINGLY_LONG_SYMBOL")
+        Symbol::new(&env, "THIS_IS_AN_EXAMPLE_OF_A_SYMBOL")
+    }
+
+    pub fn contract_address_example() -> Symbol {
+        let env = Env::default();
+        Symbol::new(
+            &env,
+            "CAIF3HTFAB34H3KPBJLGOKFFFJKSJGGTNVFMD34QGI6XUIAZ2L6IYZEN",
+        )
+    }
+
+    pub fn wallet_address_example() -> Symbol {
+        let env = Env::default();
+        Symbol::new(
+            &env,
+            "GAC77VAUQQXXJIHGDY7LVV2VAVUWSNFBI7GUZDBKBLC4BGDEVS633CEI",
+        )
     }
 
     pub fn get_string() -> String {
@@ -103,16 +119,30 @@ impl DataTypes {
     pub fn get_vec_symbol() -> Vec<Symbol> {
         let env = Env::default();
         let hello = Symbol::short("hello");
+        let bob = Symbol::short("Bob");
         let and = Symbol::short("and");
-        let bob = Symbol::short("bob");
-        let alice = Symbol::short("alice");
-        let new_vec = vec![&env, hello, and, bob, alice];
+        let alice = Symbol::short("Alice");
+        let new_vec = vec![&env, hello, bob, and, alice];
         new_vec
     }
     pub fn get_vec_address() -> Vec<Address> {
         let env = Env::default();
         let address1 = Self::get_a_address(env.clone());
         let address2 = Self::get_b_address(env.clone());
+        let new_vec = vec![&env, address1, address2];
+        new_vec
+    }
+
+    pub fn address_array_example() -> Vec<Symbol> {
+        let env = Env::default();
+        let address1 = Symbol::new(
+            &env,
+            "GAI7LBGFJWXT5H2GKUUMAMLYOWY5GAWGTHP24Z7QPMUPSYSNOSVFE6KZ",
+        );
+        let address2 = Symbol::new(
+            &env,
+            "GAC77VAUQQXXJIHGDY7LVV2VAVUWSNFBI7GUZDBKBLC4BGDEVS633CEI",
+        );
         let new_vec = vec![&env, address1, address2];
         new_vec
     }
@@ -149,6 +179,17 @@ impl DataTypes {
         let env = Env::default();
         let new_map: Map<Address, u32> = map![&env, (key1, value1), (key2, value2)];
         new_map
+    }
+
+    pub fn set_val(key: Address, value: u32) {
+        let env = Env::default();
+        env.storage().set(&key, &value);
+    }
+
+    pub fn get_val(key: Address) -> u32 {
+        let env = Env::default();
+        let val: u32 = env.storage().get(&key).unwrap().unwrap();
+        val
     }
 
     pub fn get_deadline() -> u64 {

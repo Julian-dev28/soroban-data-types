@@ -10,6 +10,8 @@ make build
 
 #### Initilaize
 
+Set `source` to your source account's private key then run:
+
 ```bash
 . ./initialize.sh
 ```
