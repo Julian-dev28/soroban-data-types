@@ -1,7 +1,8 @@
 #![no_std]
 
 use soroban_sdk::{
-    contractimpl, contracttype, map, vec, Address, Bytes, BytesN, Env, Map, String, Symbol, Vec,
+    contractimpl, contracttype, map, vec, Address, Bytes, BytesN, Env, Map, RawVal, String, Symbol,
+    TryFromVal, Vec,
 };
 
 const IS_BOOLEAN: bool = true;
@@ -9,6 +10,7 @@ const SIGNED_INTEGER: i32 = -10;
 const UNSIGNED_INTEGER: u32 = 10;
 const EXAMPLE: Symbol = Symbol::short("EXAMPLE");
 
+// Enums
 #[contracttype]
 pub enum ExampleEnum {
     A,
@@ -17,187 +19,76 @@ pub enum ExampleEnum {
     D,
 }
 
-pub enum IntegerEnum {
-    A = 0,
-    B = 1,
-    C = 2,
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum StatusEnum {
+    Open = 0,
+    Closed = 1,
+    Pending = 2,
 }
 
-pub struct State {
-    pub owner: Symbol,
+// Structs
+pub struct User {
+    pub name: Symbol,
     pub amt: u32,
 }
 
-const STATE: State = State {
-    owner: Symbol::short("BOB"),
-    amt: 44,
+const USER_EXAMPLE: User = User {
+    name: Symbol::short("USER_EX"),
+    amt: 999,
 };
 
-fn get_owner() -> Symbol {
-    STATE.owner
-}
+pub struct UnnamedFieldStruct(Symbol, u32);
 
-fn get_amt() -> u32 {
-    STATE.amt
-}
+const UNNAMED_STRUCT_EXAMPLE: UnnamedFieldStruct =
+    UnnamedFieldStruct(Symbol::short("STRUCT_EX"), 777);
 
-pub struct Tuple(u32, Symbol);
+impl User {
+    pub fn set_name(&mut self, name: Symbol) {
+        self.name = name;
+    }
 
-const TUPLE_EXAMPLE: Tuple = Tuple(777, Symbol::short("TUPLE_EX"));
-
-fn get_tuple_slot_0() -> u32 {
-    TUPLE_EXAMPLE.0
-}
-
-fn get_tuple_slot_1() -> Symbol {
-    TUPLE_EXAMPLE.1
-}
-
-fn set_a(e: &Env, a: Symbol) {
-    let a_symbol = vec![&e, a];
-    e.storage().set(&ExampleEnum::A, &a_symbol);
-}
-
-fn get_a(e: Env) -> Vec<Symbol> {
-    e.storage()
-        .get(&ExampleEnum::A)
-        .expect("not initialized")
-        .unwrap()
-}
-
-fn set_b(e: &Env, b: Address) {
-    e.storage().set(&ExampleEnum::B, &b);
-}
-
-fn get_b(e: Env) -> Address {
-    e.storage()
-        .get(&ExampleEnum::B)
-        .expect("not initialized")
-        .unwrap()
-}
-
-fn set_c(e: &Env, c: u32) {
-    e.storage().set(&ExampleEnum::C(0), &c);
-}
-
-fn get_c(e: Env) -> u32 {
-    e.storage()
-        .get(&ExampleEnum::C(0))
-        .expect("not initialized")
-        .unwrap()
-}
-
-fn set_d(e: &Env, d: Address) {
-    e.storage().set(&ExampleEnum::D, &d);
-}
-
-fn get_d(e: Env) -> Address {
-    e.storage()
-        .get(&ExampleEnum::D)
-        .expect("not initialized")
-        .unwrap()
-}
-
-fn get_a2() -> IntegerEnum {
-    IntegerEnum::A
-}
-
-fn get_b2() -> IntegerEnum {
-    IntegerEnum::B
-}
-
-fn get_c2() -> IntegerEnum {
-    IntegerEnum::C
+    pub fn get_name(&self) -> Symbol {
+        self.name.clone()
+    }
 }
 
 pub struct MyContract;
 
 #[contractimpl]
 impl MyContract {
-    pub fn initialize(contract_owner: Address) {
+    pub fn initialize(contract_owner: Address, address_random: Address, c_val: u32, d_val: Symbol) {
         let env = Env::default();
-        env.storage().set(&ExampleEnum::B, &contract_owner);
+        env.storage().set(&ExampleEnum::A, &contract_owner);
+        env.storage().set(&ExampleEnum::B, &address_random);
+        env.storage().set(&ExampleEnum::C(0), &c_val);
+        env.storage().set(&ExampleEnum::D, &d_val);
     }
 
-    pub fn set_a(a: Symbol) {
-        let e = Env::default();
-        set_a(&e, a);
+    pub fn boolean_example(val: u32) -> bool {
+        if val == 1 {
+            true
+        } else {
+            false
+        }
     }
 
-    pub fn get_a(e: Env) -> Vec<Symbol> {
-        get_a(e)
+    pub fn set_named_struct(name: Symbol, amt: u32) {
+        let env = Env::default();
+        let mut user = User {
+            name: Symbol::short(""),
+            amt: 0,
+        };
+        user.name = name;
+        user.amt = amt;
+        env.storage().set(&user.name, &user.name);
+        env.storage().set(&user.name, &user.amt);
     }
 
-    pub fn set_b(b: Address) {
-        let e = Env::default();
-        set_b(&e, b);
-    }
-
-    pub fn get_b(e: Env) -> Address {
-        get_b(e)
-    }
-
-    pub fn set_c(c: u32) {
-        let e = Env::default();
-        set_c(&e, c);
-    }
-
-    pub fn get_c(e: Env) -> u32 {
-        get_c(e)
-    }
-
-    pub fn set_d(d: Address) {
-        let e = Env::default();
-        set_d(&e, d);
-    }
-
-    pub fn get_d(e: Env) -> Address {
-        get_d(e)
-    }
-
-    pub fn set_a_b_c_d(a: Symbol, b: Address, c: u32, d: Address) {
-        let e = Env::default();
-        set_a(&e, a);
-        set_b(&e, b);
-        set_c(&e, c);
-        set_d(&e, d);
-    }
-
-    pub fn get_a_b_c_d(e: Env) -> (Vec<Symbol>, Address, u32, Address) {
-        (
-            get_a(e.clone()),
-            get_b(e.clone()),
-            get_c(e.clone()),
-            get_d(e.clone()),
-        )
-    }
-
-    pub fn get_a2() -> u32 {
-        get_a2() as u32
-    }
-
-    pub fn get_b2() -> u32 {
-        get_b2() as u32
-    }
-
-    pub fn get_c2() -> u32 {
-        get_c2() as u32
-    }
-
-    pub fn get_owner_from_state() -> Symbol {
-        get_owner()
-    }
-
-    pub fn get_amt_from_state() -> u32 {
-        get_amt()
-    }
-
-    pub fn get_tuple_slot_0() -> u32 {
-        get_tuple_slot_0()
-    }
-
-    pub fn get_tuple_slot_1() -> Symbol {
-        get_tuple_slot_1()
+    pub fn get_named_struct_amt(name: Symbol) -> u32 {
+        let env = Env::default();
+        let amt: u32 = env.storage().get(&name).unwrap().unwrap();
+        amt
     }
 
     pub fn get_boolean() -> bool {
@@ -216,21 +107,144 @@ impl MyContract {
         let env = Env::default();
         Symbol::new(&env, "THIS_IS_AN_EXCEEDINGLY_LONG_SYMBOL")
     }
+
+    pub fn get_unnamed_struct_slot_0() -> Symbol {
+        UNNAMED_STRUCT_EXAMPLE.0
+    }
+
+    pub fn get_unnamed_struct_slot_1() -> u32 {
+        UNNAMED_STRUCT_EXAMPLE.1
+    }
+
+    pub fn get_user_name() -> Symbol {
+        USER_EXAMPLE.name
+    }
+
+    pub fn get_user_amt() -> u32 {
+        USER_EXAMPLE.amt
+    }
+
+    pub fn get_status() -> u64 {
+        let env = Env::default();
+        let deadline: u64 = env.storage().get(&ExampleEnum::C(100)).unwrap().unwrap();
+        deadline
+    }
+
+    pub fn set_deadline(e: Env, val: u64) {
+        let env = Env::default();
+        let deadline: u64 = env.ledger().timestamp() + val;
+        e.storage().set(&ExampleEnum::C(100), &deadline);
+    }
+
+    pub fn set_unnamed_struct_slot_0(e: Env, name: Symbol) {
+        e.storage().set(&UNNAMED_STRUCT_EXAMPLE.0, &name);
+    }
+
+    pub fn set_unnamed_struct_slot_1(e: Env, amt: u32) {
+        e.storage().set(&UNNAMED_STRUCT_EXAMPLE.1, &amt);
+    }
+
+    pub fn set_user_name(e: Env, name: Symbol) {
+        e.storage().set(&USER_EXAMPLE.name, &name);
+    }
+
+    pub fn set_user_amt(e: Env, amt: u32) {
+        e.storage().set(&USER_EXAMPLE.amt, &amt);
+    }
+
+    pub fn set_a(e: Env, a: Address) {
+        e.storage().set(&ExampleEnum::A, &a);
+    }
+
+    pub fn set_a_auth(e: Env, a: Address) {
+        a.require_auth();
+        e.storage().set(&ExampleEnum::A, &a);
+    }
+
+    pub fn set_b(e: Env, b: Address) {
+        e.storage().set(&ExampleEnum::B, &b);
+    }
+
+    pub fn set_c(e: Env, slot: u32, c: u32) {
+        e.storage().set(&ExampleEnum::C(slot), &c);
+    }
+
+    pub fn set_d(e: Env, d: Symbol) {
+        e.storage().set(&ExampleEnum::D, &d);
+    }
+
+    pub fn get_a_b_c_d(c_slot: u32) -> (Address, Address, u32, Symbol) {
+        let env = Env::default();
+        let a = Self::get_a_address(env.clone());
+        let b = Self::get_b_address(env.clone());
+        let c = Self::get_c_u32(env.clone(), c_slot);
+        let d = Self::get_d_symbol(env.clone());
+        (a, b, c, d)
+    }
+
+    pub fn get_a_address(e: Env) -> Address {
+        e.storage()
+            .get(&ExampleEnum::A)
+            .expect("not initialized")
+            .unwrap()
+    }
+
+    pub fn get_b_address(e: Env) -> Address {
+        e.storage()
+            .get(&ExampleEnum::B)
+            .expect("not initialized")
+            .unwrap()
+    }
+
+    pub fn get_c_u32(e: Env, slot: u32) -> u32 {
+        e.storage()
+            .get(&ExampleEnum::C(slot))
+            .expect("not initialized")
+            .unwrap()
+    }
+
+    pub fn get_d_symbol(e: Env) -> Symbol {
+        e.storage()
+            .get(&ExampleEnum::D)
+            .expect("not initialized")
+            .unwrap()
+    }
+
+    pub fn get_open_status() -> u32 {
+        StatusEnum::Open as u32
+    }
+
+    pub fn get_close_status() -> u32 {
+        StatusEnum::Closed as u32
+    }
+
+    pub fn get_pending_status() -> u32 {
+        StatusEnum::Pending as u32
+    }
+
     pub fn get_string() -> String {
         let env = Env::default();
-        let msg = "a message";
+        let msg = "hello, world";
         let new_string = String::from_slice(&env, msg);
         new_string
     }
     pub fn get_bytes() -> Bytes {
         let env = Env::default();
-        let msg = "a message";
-        let new_bytes = Bytes::from_slice(&env, msg.as_bytes());
+        let msg: &str = "hello, world";
+        let new_bytes: Bytes = Bytes::from_slice(&env, msg.as_bytes());
         new_bytes
     }
     pub fn get_bytesn() -> BytesN<32> {
-        let env = Env::default();
-        let new_bytesn = BytesN::from_array(&env, &[1; 32]);
+        let env: Env = Env::default();
+        let msg: &str = "hello, world";
+
+        // Create an array of 32 zeroed bytes
+        let mut msg_to_array: [u8; 32] = [0; 32];
+
+        // Copy the bytes of your message into the array
+        msg_to_array[..msg.len()].copy_from_slice(msg.as_bytes());
+
+        let new_bytesn: BytesN<32> = BytesN::from_array(&env, &msg_to_array);
         new_bytesn
     }
     pub fn get_address() -> Address {
@@ -238,7 +252,7 @@ impl MyContract {
         let current_address = env.current_contract_address();
         current_address
     }
-    pub fn get_vec() -> Vec<u32> {
+    pub fn get_vec_int() -> Vec<u32> {
         let env = Env::default();
         let new_vec = vec![&env, 1, 2, 3];
         new_vec
@@ -254,16 +268,18 @@ impl MyContract {
     }
     pub fn get_vec_address() -> Vec<Address> {
         let env = Env::default();
-        let address1 = get_b(env.clone());
-        let address2 = get_d(env.clone());
+        let address1 = Self::get_a_address(env.clone());
+        let address2 = Self::get_b_address(env.clone());
         let new_vec = vec![&env, address1, address2];
         new_vec
     }
-    pub fn get_map() -> Map<u32, u32> {
+
+    pub fn get_map(key1: Symbol, value1: u32, key2: Symbol, value2: u32) -> Map<Symbol, u32> {
         let env = Env::default();
-        let new_map = map![&env, (1, 10), (2, 20)];
+        let new_map: Map<Symbol, u32> = map![&env, (key1, value1), (key2, value2)];
         new_map
     }
+
     pub fn get_timestamp() -> u64 {
         let env = Env::default();
         env.ledger().timestamp()
